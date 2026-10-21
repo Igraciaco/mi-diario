@@ -1,1 +1,13 @@
-{"name":"Mi Diario","short_name":"Mi Diario","start_url":"./index.html","scope":"./","display":"standalone","background_color":"#f5f6fa","theme_color":"#ff6b2c","icons":[{"src":"icon-180.png","sizes":"180x180","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png"}]}
+{
+  "name": "Mi Diario",
+  "short_name": "Mi Diario",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f8fb",
+  "theme_color": "#7894ae",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

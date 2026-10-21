@@ -4,9 +4,9 @@
 <title>Mi Diario</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Mi Diario"><meta name="theme-color" content="#ff6b2c">
+<meta name="apple-mobile-web-app-title" content="Mi Diario"><meta name="theme-color" content="#7894ae">
 <style>
-:root{--bg:#f5f6fa;--card:#fff;--tx:#1a1d29;--mu:#6b7080;--ac:#ff6b2c;--ac2:#2c7bff;--ok:#1fa971;--bd:#e4e6ee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--bg:#f5f8fb;--card:#fff;--tx:#1a1d29;--mu:#6b7080;--ac:#7894ae;--ac2:#587d9f;--ok:#1fa971;--bd:#dfe7ef;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1117;--card:#1a1d27;--tx:#eef0f6;--mu:#9096aa;--bd:#2a2e3c}}
 :root[data-theme="dark"]{--bg:#0f1117;--card:#1a1d27;--tx:#eef0f6;--mu:#9096aa;--bd:#2a2e3c}
 *{box-sizing:border-box}html,body{margin:0}
@@ -29,6 +29,15 @@ nav button{flex:1;min-width:62px;background:none;color:var(--mu);border-radius:0
 nav button.on{color:var(--ac)}nav span{display:block;font-size:20px}
 label{font-size:13px;color:var(--mu);display:block;margin:6px 0 2px}
 .bar{height:10px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}
+
+/* Premium claro */
+:root{--bg:#f5f8fb;--card:#fff;--tx:#223448;--mu:#788b9e;--ac:#7894ae;--ac2:#587d9f;--bd:#dfe7ef}
+body{letter-spacing:-.012em}main{padding:18px 15px}h1{font-size:26px;font-weight:750;letter-spacing:-.04em;margin:12px 0 20px}h2{font-size:12px;letter-spacing:.10em;font-weight:750}
+.card{border:1px solid #e7edf3;box-shadow:0 7px 25px rgba(53,82,110,.045);border-radius:21px;padding:18px;margin-bottom:14px}
+button{border-radius:13px}nav{box-shadow:0 -4px 24px rgba(39,65,91,.06)}nav button.on{color:#476c90}
+.ringgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0 18px}
+.ringitem{text-align:center;min-width:0}.ring{--pct:0;--ring:#7894ae;width:100%;max-width:110px;aspect-ratio:1;border-radius:50%;margin:0 auto 8px;display:grid;place-items:center;background:conic-gradient(var(--ring) calc(var(--pct)*1%),#e9eff5 0);position:relative}.ring:before{content:'';position:absolute;inset:11px;background:white;border-radius:50%}.ring b{z-index:1;font-size:15px;line-height:1.15}.ringitem small{font-size:11px;color:var(--mu)}
+.monthbar{display:flex;justify-content:space-between;align-items:center;margin:8px 0 15px}.monthbar strong{text-transform:capitalize}.monthgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.dayname{text-align:center;color:var(--mu);font-size:11px;padding:6px 0}.daycell{min-width:0;min-height:53px;border-radius:12px;background:#f3f7fb;color:var(--tx);padding:7px 2px;font-size:13px;font-weight:500;position:relative}.daycell.sel{background:#7894ae;color:white}.daycell.today{outline:2px solid #9eb3c8}.dot{display:block;width:5px;height:5px;border-radius:50%;background:#5a84a6;margin:4px auto 0}.daycell.sel .dot{background:white}.hourrow{display:grid;grid-template-columns:48px 1fr;gap:10px;border-top:1px solid var(--bd);min-height:48px;padding:8px 0}.hourrow time{color:var(--mu);font-size:12px}.hourtask{border-left:3px solid var(--ac);padding:7px;background:#eef4f9;border-radius:7px;font-size:13px;margin:2px 0}
 </style></head><body><main id="app"></main>
 <nav id="nav"></nav>
 <script src="firebase-config.js"></script>
@@ -51,9 +60,11 @@ window.claude={use:async n=>n==='sample'?sample:n==='downloads'?downloads:null};
 </script>
 <script>
 const KEY='mi-diario-v1';
-let S={p:{peso:70,alt:175,edad:17,sexo:'m'},wake:[],sleep:[],study:[],studyRun:null,sport:[],sportRun:null,food:[],health:{},period:[],weights:[],goal:2200,water:{},meas:[],exp:[],phone:{},train:{},tasks:[],diet:{mode:'mantener',rate:1}};
+let S={p:{peso:70,alt:175,edad:17,sexo:'m'},wake:[],sleep:[],study:[],studyRun:null,sport:[],sportRun:null,food:[],health:{},period:[],weights:[],goal:2200,water:{},meas:[],exp:[],phone:{},train:{},tasks:[],matches:[],diet:{mode:'mantener',rate:1}};
 try{const x=localStorage.getItem(KEY);if(x)S=Object.assign(S,JSON.parse(x))}catch(e){}
-const save=()=>{S._t=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}window.cloudPush&&window.cloudPush()};
+if(!Array.isArray(S.matches))S.matches=[];
+const sig=()=>JSON.stringify(S,(k,v)=>k==='_t'?undefined:v);let _sig=sig();
+const save=()=>{const s=sig();if(s!==_sig){_sig=s;S._t=Date.now();window.cloudPush&&window.cloudPush()}try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 let tab='hoy',photo={busy:false,res:null,err:''};
 const TABS=[['hoy','🏠','Hoy'],['estudio','📚','Estudio'],['deporte','🏀','Deporte'],['comida','🍽️','Comida'],['cuerpo','❤️','Cuerpo']];
@@ -84,6 +95,11 @@ document.getElementById('app').innerHTML=({hoy,estudio,deporte,comida,cuerpo,pla
 const lastDays=()=>Array.from({length:7},(_,i)=>dk(Date.now()-(6-i)*864e5));
 const bars=(vals,color)=>{const m=Math.max(...vals,1),L=lastDays();return `<div style="display:flex;gap:6px;align-items:flex-end;height:96px">${vals.map((v,i)=>`<div style="flex:1;text-align:center;font-size:10px" class="mu">${Math.round(v*10)/10}<div style="height:${Math.round(v/m*60)}px;background:${color};border-radius:4px 4px 0 0;min-height:2px"></div>${new Date(L[i]+'T12:00').toLocaleDateString('es-ES',{weekday:'narrow'})}</div>`).join('')}</div>`};
 const wmL=()=>S.water[today()]||0,wgL=()=>Math.round(S.p.peso*35);
+function ringStat(label,value,max,color){const pct=Math.min(100,Math.max(0,value/Math.max(1,max)*100));return `<div class="ringitem"><div class="ring" style="--pct:${pct};--ring:${color}"><b>${Math.round(value)}<br><span style="font-size:10px;font-weight:500">kcal</span></b></div><small>${label}</small></div>`}
+let calMonth=new Date().getMonth(),calYear=new Date().getFullYear(),calDay=today();
+function dayTasks(day){return S.tasks.filter(x=>x.when&&x.when.slice(0,10)===day).sort((a,b)=>a.when.localeCompare(b.when))}
+function monthView(){const first=new Date(calYear,calMonth,1),days=new Date(calYear,calMonth+1,0).getDate(),offset=(first.getDay()+6)%7;let out=`<div class="monthbar"><button class="s sm" data-act="calprev">‹</button><strong>${first.toLocaleDateString('es-ES',{month:'long',year:'numeric'})}</strong><button class="s sm" data-act="calnext">›</button></div><div class="monthgrid">${['L','M','X','J','V','S','D'].map(x=>`<div class="dayname">${x}</div>`).join('')}`;for(let i=0;i<offset;i++)out+='<div></div>';for(let d=1;d<=days;d++){const k=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');out+=`<button class="daycell ${k===calDay?'sel':''} ${k===today()?'today':''}" data-act="calday" data-v="${k}">${d}${dayTasks(k).length?'<i class="dot"></i>':''}</button>`}return out+'</div>'}
+function dayView(){const d=new Date(calDay+'T12:00');return `<h2 style="margin-top:20px">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})}</h2><div class="mu" style="margin-bottom:12px">Selecciona una hora para crear una tarea o evento.</div>${Array.from({length:24},(_,h)=>{const hh=String(h).padStart(2,'0');const ts=dayTasks(calDay).filter(x=>x.when.slice(11,13)===hh);return `<div class="hourrow"><time>${hh}:00</time><div><button class="s sm" data-act="calhour" data-v="${hh}" style="padding:3px 8px;font-size:11px">+ Añadir</button>${ts.map(x=>`<div class="hourtask">${esc(x.title)} <span class="mu">${x.when.slice(11,16)}</span></div>`).join('')}</div></div>`}).join('')}`}
 function hoy(){
 const sp=sum(sportToday(),'kcal'),h=healthToday(),inn=sum(foodToday(),'kcal');
 const out=bmr()+sp+h.kcal,bal=inn-out,sl=sleepLast();
@@ -91,7 +107,7 @@ const w=S.wake.filter(x=>dk(x)===today()).sort((a,b)=>a-b)[0];
 return `<h1>Hoy · ${new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})}</h1>
 <div class="card"><h2>Fichar día</h2><div class="row"><button class="g" data-act="wake" style="flex:1">☀️ Me levanto</button><button class="b" data-act="sleep" style="flex:1">🌙 Me voy a dormir</button></div>
 <p class="mu">${w?'Hoy te levantaste a las '+hm(w)+'. ':''}${sl?'Última noche dormiste '+dur(sl)+'.':'Ficha al acostarte y al levantarte para contar el sueño.'}</p></div>
-<div class="card"><h2>Balance de calorías</h2><div class="big" style="color:${bal>0?'#d63b4a':'var(--ok)'}">${bal>0?'+':''}${bal} kcal</div>
+<div class="card"><h2>Actividad y nutrición</h2><div class="ringgrid">${ringStat('Consumidas',inn,S.goal,'#8da9bd')}${ringStat('Quemadas',sp+h.kcal,Math.max(1,Math.round(S.p.peso*8)),'#597e9e')}${ringStat('Balance',Math.abs(bal),Math.max(1,S.goal),'#9ba9bb')}</div><p class="mu">Los círculos muestran el progreso respecto a una referencia, no una medición clínica. Calorías quemadas: actividad y deporte registrados.</p></div><div class="card"><h2>Balance de calorías</h2><div class="big" style="color:${bal>0?'#d63b4a':'var(--ok)'}">${bal>0?'+':''}${bal} kcal</div>
 <p class="mu">Comidas ${inn} − gasto ${out} (basal ${bmr()} + deporte ${sp} + actividad ${h.kcal})</p>
 <div class="g2"><div class="stat">📚 Estudio<b>${dur(studyMs(today()))}</b></div><div class="stat">👟 Pasos<b>${h.steps}</b></div><div class="stat">🔥 Deporte<b>${sp} kcal</b></div><div class="stat">🍽️ Comido<b>${inn} kcal</b></div></div></div>
 <div class="card"><h2>Objetivos de hoy</h2>
@@ -121,12 +137,31 @@ return `<h1>📚 Estudio</h1><div class="card" style="text-align:center">
 
 function deporte(){
 const r=S.sportRun,td=sportToday();
-return `<h1>🏀 Baloncesto</h1><div class="card"><h2>Cronómetro</h2>
+const matches=[...(S.matches||[])].sort((a,b)=>b.date-a.date);
+const val=(x)=>x==null?'—':x;
+return `<h1>🏀 Baloncesto</h1>
+<div class="card"><h2>Registrar entrenamiento</h2>
 ${r?`<div style="text-align:center"><div class="big" data-live="sport">${clock(Date.now()-r.s)}</div><p class="mu">${MET[r.type][1]} · ~<span data-live="sportk">${kcalSport(r.type,(Date.now()-r.s)/60000)}</span> kcal</p><button class="r" data-act="sportstop" style="width:100%">⏹ Terminar</button></div>`:
 `<select id="stype">${Object.entries(MET).map(([k,v])=>`<option value="${k}">${v[1]}</option>`).join('')}</select><p><button class="g" data-act="sportstart" style="width:100%">▶ Empezar ahora</button></p>`}</div>
-<div class="card"><h2>Añadir a mano</h2><div class="g2"><select id="mtype">${Object.entries(MET).map(([k,v])=>`<option value="${k}">${v[1]}</option>`).join('')}</select><input id="mmin" type="number" placeholder="Minutos"></div><p><button data-act="sportadd">Añadir</button></p>
-<p class="mu">Calorías = MET × peso (${S.p.peso} kg) × horas. MET: entreno 6,5 · partido 8 · calentamiento 4,5.</p></div>
-<div class="card"><h2>Hoy · ${sum(td,'kcal')} kcal</h2>${td.map(x=>`<div class="li"><span>${MET[x.type][1]} · ${x.min} min</span><b>${x.kcal} kcal</b></div>`).join('')||'<p class="mu">Sin sesiones hoy.</p>'}</div>`}
+<div class="card"><h2>Añadir entrenamiento a mano</h2><div class="g2"><select id="mtype">${Object.entries(MET).map(([k,v])=>`<option value="${k}">${v[1]}</option>`).join('')}</select><input id="mmin" type="number" min="1" placeholder="Minutos"></div><p><button data-act="sportadd">Añadir entrenamiento</button></p><p class="mu">Calorías estimadas = MET × peso (${S.p.peso} kg) × horas.</p></div>
+<div class="card"><h2>Entrenamientos de hoy · ${sum(td,'kcal')} kcal</h2>${td.map(x=>`<div class="li"><span>${MET[x.type]?.[1]||'Entrenamiento'} · ${x.min} min</span><b>${x.kcal} kcal</b></div>`).join('')||'<p class="mu">Sin entrenamientos registrados hoy.</p>'}</div>
+<div class="card"><h2>🏆 Estadísticas de partido</h2><p class="mu">Guarda el resultado y tus estadísticas individuales. Los tiros se registran como anotados / intentados.</p>
+<label>Fecha del partido</label><input id="matchdate" type="date" value="${today()}">
+<label>Equipo rival</label><input id="opponent" maxlength="80" placeholder="Nombre del equipo rival">
+<div class="g2"><div><label>Partido</label><select id="venue"><option value="casa">🏠 Casa</option><option value="visitante">🚌 Visitante</option></select></div><div><label>Resultado del equipo</label><div class="g2"><input id="scorefor" type="number" min="0" placeholder="Nosotros"><input id="scoreagainst" type="number" min="0" placeholder="Rival"></div></div></div>
+<div class="g2"><div><label>Minutos jugados</label><input id="m_minutes" type="number" min="0" step="0.1" placeholder="Minutos"></div><div><label>Puntos</label><input id="m_points" type="number" min="0" placeholder="Puntos"></div>
+<div><label>Tiros libres anotados</label><input id="ftm" type="number" min="0" placeholder="Anotados"></div><div><label>Tiros libres intentados</label><input id="fta" type="number" min="0" placeholder="Intentados"></div>
+<div><label>Triples anotados</label><input id="tpm" type="number" min="0" placeholder="Anotados"></div><div><label>Triples intentados</label><input id="tpa" type="number" min="0" placeholder="Intentados"></div>
+<div><label>Tiros de 2 anotados</label><input id="twom" type="number" min="0" placeholder="Anotados"></div><div><label>Tiros de 2 intentados</label><input id="twoa" type="number" min="0" placeholder="Intentados"></div>
+<div><label>Rebotes ofensivos</label><input id="oreb" type="number" min="0" placeholder="Rebotes"></div><div><label>Rebotes defensivos</label><input id="dreb" type="number" min="0" placeholder="Rebotes"></div>
+<div><label>Asistencias</label><input id="assists" type="number" min="0" placeholder="Asistencias"></div><div><label>Robos</label><input id="steals" type="number" min="0" placeholder="Robos"></div>
+<div><label>Tapones</label><input id="blocks" type="number" min="0" placeholder="Tapones"></div><div><label>Pérdidas</label><input id="turnovers" type="number" min="0" placeholder="Pérdidas"></div>
+<div><label>Faltas cometidas</label><input id="foulsmade" type="number" min="0" placeholder="Faltas"></div><div><label>Faltas recibidas</label><input id="foulsdrawn" type="number" min="0" placeholder="Faltas"></div>
+<div><label>Valoración</label><input id="valuation" type="number" step="0.1" placeholder="Valoración"></div><div><label>Más / menos (+/−)</label><input id="plusminus" type="number" step="1" placeholder="+/-"></div></div>
+<label>Notas (opcional)</label><input id="matchnotes" maxlength="300" placeholder="Sensaciones, detalles del partido…">
+<p><button data-act="matchadd" style="width:100%">Guardar partido</button></p></div>
+<div class="card"><h2>📊 Historial de partidos · ${matches.length}</h2>
+${matches.map(x=>`<div style="border-top:1px solid var(--bd);padding:12px 0"><div class="row" style="justify-content:space-between"><b>${esc(x.opponent||'Rival sin nombre')}</b><button class="s sm" data-act="matchdel" data-v="${x.id}">Eliminar</button></div><div class="mu">${fd(x.date)} · ${x.venue==='casa'?'🏠 Casa':'🚌 Visitante'}</div><div class="big" style="font-size:26px;margin:4px 0">${val(x.scorefor)} – ${val(x.scoreagainst)} <span class="mu" style="font-size:12px">${x.scorefor>x.scoreagainst?'VICTORIA':x.scorefor<x.scoreagainst?'DERROTA':'EMPATE'}</span></div><div class="g2"><div class="stat">Puntos<b>${val(x.points)}</b></div><div class="stat">Minutos<b>${val(x.minutes)}</b></div><div class="stat">Tiros<br><b>${x.twom||0}/${x.twoa||0} · ${x.tpm||0}/${x.tpa||0} · ${x.ftm||0}/${x.fta||0}</b><span class="mu">2PT · 3PT · TL</span></div><div class="stat">Rebotes<b>${(x.oreb||0)+(x.dreb||0)} <span class="mu">(${x.oreb||0} O / ${x.dreb||0} D)</span></b></div><div class="stat">Asist. / Robos<b>${x.assists||0} / ${x.steals||0}</b></div><div class="stat">Valoración / +−<b>${val(x.valuation)} / ${val(x.plusminus)}</b></div></div><p class="mu">Tapones ${x.blocks||0} · Pérdidas ${x.turnovers||0} · Faltas cometidas ${x.foulsmade||0} · recibidas ${x.foulsdrawn||0}${x.notes?' · '+esc(x.notes):''}</p></div>`).join('')||'<p class="mu">Todavía no has guardado ningún partido.</p>'}</div>`}
 
 function comida(){
 const td=foodToday(),tot=sum(td,'kcal');
@@ -161,8 +196,10 @@ let adv={};
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const eur=v=>v.toFixed(2).replace('.',',')+' €';
 const d0=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
-const sumExp=a=>S.exp.filter(x=>x.t>=a).reduce((s,x)=>s+x.amt,0);
+const sumExp=a=>S.exp.filter(x=>x.t>=a&&x.type!=='ingreso').reduce((s,x)=>s+x.amt,0);
+const sumInc=a=>S.exp.filter(x=>x.t>=a&&x.type==='ingreso').reduce((s,x)=>s+x.amt,0);
 const CATS=['Comida','Transporte','Ocio','Deporte','Ropa','Otros'];
+const ICATS=['Sueldo','Paga','Beca','Regalo','Venta','Otros ingresos'];
 function rules(){const w=S.p.peso,h=T(0),m=T(1),act=h!=='descanso',L=[];
 const c=h==='partido'?7:h==='entreno'?6:m==='partido'?7:m==='entreno'?5:4;
 L.push(`Carbohidratos: ~${Math.round(c*w)} g hoy (arroz, pasta, patata, pan, avena, fruta).`);
@@ -202,21 +239,19 @@ function mkIcs(x){const w=x.when||dk(Date.now())+'T08:00',e=new Date(new Date(w)
 end=e.getFullYear()+P(e.getMonth()+1)+P(e.getDate())+'T'+P(e.getHours())+P(e.getMinutes())+'00';
 return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MiDiario//ES','BEGIN:VEVENT','UID:'+x.id+'@midiario','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z','DTSTART:'+icsT(w),'DTEND:'+end,x.type==='despertador'?'RRULE:FREQ=DAILY':'','SUMMARY:'+x.title.replace(/[,;]/g,' '),'BEGIN:VALARM','ACTION:AUDIO','TRIGGER:PT0S','END:VALARM','END:VEVENT','END:VCALENDAR'].filter(Boolean).join('\r\n')}
 function agenda(){const L=[...S.tasks].sort((a,b)=>(a.when||'9').localeCompare(b.when||'9'));
-return `<h1>✅ Agenda</h1><div class='card'><h2>Nueva tarea, alarma o evento</h2><input id='tt' placeholder='Título'><div class='g2' style='margin-top:8px'><input id='tw' type='datetime-local'><select id='ty'>${Object.entries(TT).map(([k,v])=>`<option value='${k}'>${v}</option>`).join('')}</select></div><p><button data-act='taskadd'>Añadir</button></p><p class='mu'>Una web no puede sonar como alarma. Pulsa 📲 para bajar un archivo .ics, ábrelo desde Archivos y elige «Añadir a Calendario»: así tendrá el aviso de Apple.</p></div>
-<div class='card'><h2>Pendiente</h2>${L.map(x=>`<div class='li' style='align-items:center'><span style='${x.done?'text-decoration:line-through;opacity:.5':''}'>${TT[x.type].slice(0,2)} ${esc(x.title)}<br><span class='mu'>${x.when?x.when.replace('T',' '):'sin fecha'}</span></span><span><button class='s sm' data-act='taskdone' data-v='${x.id}'>✔</button> <button class='s sm' data-act='ics' data-v='${x.id}'>📲</button> <button class='s sm' data-act='taskdel' data-v='${x.id}'>✕</button></span></div>`).join('')||`<p class='mu'>Nada por ahora.</p>`}</div>
-<div class='card'><h2>Atajos directos</h2><p class='mu'>Añade al enlace de esta página #hoy, #estudio, #deporte, #comida, #cuerpo, #plan, #extra o #agenda y guárdalo en tu pantalla de inicio.</p></div>`}
+return `<h1>Agenda</h1><div class="card"><h2>Calendario mensual</h2>${monthView()}${dayView()}</div><div class="card"><h2>Nueva tarea o evento</h2><input id="tt" placeholder="Título"><div class="g2" style="margin-top:8px"><input id="tw" type="datetime-local" value="${calDay}T09:00"><select id="ty">${Object.entries(TT).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div><p><button data-act="taskadd">Añadir</button></p><p class="mu">Puedes exportar cada evento al Calendario de Apple con 📲. La sincronización bidireccional automática todavía no está conectada.</p></div><div class="card"><h2>Mis tareas y eventos</h2>${L.map(x=>`<div class="li" style="align-items:center"><span style="${x.done?'text-decoration:line-through;opacity:.5':''}">${esc(x.title)}<br><span class="mu">${x.when?x.when.replace('T',' '):'sin fecha'}</span></span><span><button class="s sm" data-act="taskdone" data-v="${x.id}">✔</button> <button class="s sm" data-act="ics" data-v="${x.id}">📲</button> <button class="s sm" data-act="taskdel" data-v="${x.id}">✕</button></span></div>`).join('')||'<p class="mu">No hay tareas.</p>'}</div>`}
 function plan(){return `<h1>🗓️ Plan de entrenos</h1><div class='card'><h2>Próximos 7 días · toca para cambiar</h2>${Array.from({length:7},(_,i)=>`<div class='li' style='align-items:center'><span>${new Date(Date.now()+i*864e5).toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'})}</span><button class='s sm' data-act='train' data-v='${i}'>${TI[T(i)]}</button></div>`).join('')}</div>
 ${dietCard()}
 <div class='card'><h2>Qué comer hoy (${TI[T(0)]})</h2>${rules().map(x=>`<p style='margin:6px 0'>• ${x}</p>`).join('')}<p class='mu'>Orientativo; no sustituye a un nutricionista.</p></div>
 <div class='card'><h2>Consejo personalizado</h2><button class='b' data-act='advice'>✨ Pedir consejo a Claude</button>${adv.busy?`<p class='mu'>Pensando…</p>`:''}${adv.err?`<p style='color:#d63b4a'>${adv.err}</p>`:''}${adv.text?`<p style='white-space:pre-wrap'>${adv.text}</p>`:''}</div>`}
 function extra(){const L=lastDays(),ph=S.phone[today()]||0,avg=L.reduce((a,d)=>a+(S.phone[d]||0),0)/7;
 const mon=d0();mon.setDate(mon.getDate()-((mon.getDay()+6)%7));const mes=d0();mes.setDate(1);
-const m30=Date.now()-30*864e5,by=CATS.map(c=>[c,S.exp.filter(x=>x.t>=m30&&x.cat===c).reduce((s,x)=>s+x.amt,0)]),mx=Math.max(...by.map(x=>x[1]),1);
+const m30=Date.now()-30*864e5,by=CATS.map(c=>[c,S.exp.filter(x=>x.t>=m30&&x.type!=='ingreso'&&x.cat===c).reduce((s,x)=>s+x.amt,0)]),mx=Math.max(...by.map(x=>x[1]),1);
 return `<h1>💶 Gastos y móvil</h1>
-<div class='card'><h2>Gastos</h2><div class='g2'><div class='stat'>Hoy<b>${eur(sumExp(+d0()))}</b></div><div class='stat'>Esta semana<b>${eur(sumExp(+mon))}</b></div><div class='stat'>Este mes<b>${eur(sumExp(+mes))}</b></div><div class='stat'>Últimos 30 días<b>${eur(sumExp(m30))}</b></div></div>
-<div class='g2' style='margin-top:10px'><input id='ea' type='number' step='0.01' placeholder='€'><select id='ec'>${CATS.map(c=>`<option>${c}</option>`).join('')}</select></div><input id='en' placeholder='Concepto (opcional)' style='margin-top:8px'><p><button data-act='expadd'>Añadir gasto</button></p>
-${by.map(x=>`<div class='mu'>${x[0]} · ${eur(x[1])}</div><div class='bar'><i style='width:${x[1]/mx*100}%'></i></div>`).join('')}
-${[...S.exp].reverse().slice(0,8).map(x=>`<div class='li'><span>${fd(x.t)} ${x.cat}${x.note?' · '+esc(x.note):''}</span><span><b>${eur(x.amt)}</b> <button class='s sm' data-act='expdel' data-v='${S.exp.indexOf(x)}'>✕</button></span></div>`).join('')}</div>
+<div class='card'><h2>Balance económico</h2><div class='g2'><div class='stat'>Gastos hoy<b style='color:#d63b4a'>${eur(sumExp(+d0()))}</b></div><div class='stat'>Ingresos hoy<b style='color:var(--ok)'>${eur(sumInc(+d0()))}</b></div><div class='stat'>Gastos este mes<b>${eur(sumExp(+mes))}</b></div><div class='stat'>Ingresos este mes<b>${eur(sumInc(+mes))}</b></div></div><div class='stat' style='margin-top:8px'>Balance del mes<b style='color:${sumInc(+mes)-sumExp(+mes)>=0?'var(--ok)':'#d63b4a'}'>${eur(sumInc(+mes)-sumExp(+mes))}</b><span class='mu'>Ingresos menos gastos</span></div>
+<h2 style='margin-top:16px'>Añadir movimiento</h2><label>Tipo de movimiento</label><select id='etype'><option value='gasto'>💸 Gasto</option><option value='ingreso'>💰 Ingreso</option></select><div class='g2' style='margin-top:8px'><input id='ea' type='number' min='0.01' step='0.01' placeholder='Importe en €'><select id='ec'>${CATS.map(c=>`<option>${c}</option>`).join('')}${ICATS.map(c=>`<option>${c}</option>`).join('')}</select></div><input id='en' placeholder='Concepto (opcional)' style='margin-top:8px'><p><button data-act='expadd'>Añadir movimiento</button></p>
+<h2 style='margin-top:16px'>Desglose de gastos · últimos 30 días</h2>${by.map(x=>`<div class='mu'>${x[0]} · ${eur(x[1])}</div><div class='bar'><i style='width:${x[1]/mx*100}%'></i></div>`).join('')}
+<h2 style='margin-top:16px'>Movimientos recientes</h2>${[...S.exp].reverse().slice(0,12).map(x=>`<div class='li'><span>${x.type==='ingreso'?'💰':'💸'} ${fd(x.t)} ${esc(x.cat)}${x.note?' · '+esc(x.note):''}</span><span><b style='color:${x.type==='ingreso'?'var(--ok)':'#d63b4a'}'>${x.type==='ingreso'?'+':'−'}${eur(x.amt)}</b> <button class='s sm' data-act='expdel' data-v='${S.exp.indexOf(x)}'>✕</button></span></div>`).join('')||`<p class='mu'>Todavía no hay movimientos.</p>`}</div>
 <div class='card'><h2>Uso del móvil</h2><div class='row'><input id='ph2' type='number' step='0.1' placeholder='Horas hoy' value='${ph?(ph/60).toFixed(1):''}' style='flex:1'><button data-act='phone'>Guardar</button></div><p class='mu'>Hoy: ${dur(ph*6e4)} · media 7 días: ${dur(avg*6e4)}</p>${bars(L.map(d=>(S.phone[d]||0)/60),'#8a5cf6')}<p class='mu'>Horas por día. Una web no puede leer Tiempo en pantalla: míralo en Ajustes y escríbelo aquí.</p></div>
 <div class='card'><h2>Sincronizar con la app nativa</h2><label>Importar JSON exportado desde la app del iPhone</label><input id='imp' type='file' accept='.json,application/json'></div>`}
 document.addEventListener('change',async e=>{if(e.target.id!=='imp'||!e.target.files[0])return;
@@ -227,15 +262,19 @@ save();render();alert('Importado')}catch(x){alert('Archivo no válido')}});
 let cu={user:null,msg:''};
 function cuentaCard(){
  if(!window.cloudOK)return `<div class="card"><h2>Cuenta</h2><p class="mu">Nube no disponible (sin configurar o sin conexión). Tus datos se guardan solo en este dispositivo.</p></div>`;
- if(cu.user)return `<div class="card"><h2>Cuenta</h2><p>✅ Sesión iniciada como <b>${esc(cu.user)}</b></p><p class="mu" id="cmsg">${esc(cu.msg||'Tus datos se sincronizan automáticamente.')}</p><button class="s" data-act="logout">Cerrar sesión</button></div>`;
+ if(cu.user)return `<div class="card"><h2>Cuenta</h2><p>✅ Sesión iniciada como <b>${esc(cu.user)}</b></p><p class="mu" id="cmsg">${esc(cu.msg||'Tus datos se sincronizan automáticamente.')}</p><div class="row"><button class="b" data-act="syncnow">Sincronizar ahora</button><button class="s" data-act="logout">Cerrar sesión</button></div></div>`;
  return `<div class="card"><h2>Cuenta</h2><input id="em" type="email" placeholder="Correo" autocomplete="email"><input id="pw" type="password" placeholder="Contraseña (6 o más caracteres)" autocomplete="current-password" style="margin-top:8px"><div class="row" style="margin-top:8px"><button data-act="login">Entrar</button><button class="s" data-act="signup">Crear cuenta</button></div><p class="mu" id="cmsg">${esc(cu.msg)}</p></div>`}
 async function cloudAct(a){cu.msg='';try{if(a==='logout')await window.cloud.logout();else await window.cloud[a](document.getElementById('em').value.trim(),document.getElementById('pw').value)}catch(e){cu.msg=e.message||'Error';render()}}
 window.App={get:()=>S,msg:m=>{cu.msg=m;const el=document.getElementById('cmsg');if(el)el.textContent=m},user:u=>{cu.user=u;render()},
- replace:o=>{Object.assign(S,o);try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}render()}};
+ replace:o=>{Object.assign(S,o);_sig=sig();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}render()}};
 document.addEventListener('click',async e=>{
 const el=e.target.closest('[data-act]');if(!el||el.tagName==='INPUT')return;
 const a=el.dataset.act,v=el.dataset.v,n=Date.now();
 if(a==='tab')tab=v;
+else if(a==='calprev'){calMonth--;if(calMonth<0){calMonth=11;calYear--}}
+else if(a==='calnext'){calMonth++;if(calMonth>11){calMonth=0;calYear++}}
+else if(a==='calday')calDay=v;
+else if(a==='calhour'){const input=document.getElementById('tw');if(input){input.value=calDay+'T'+v+':00';document.getElementById('tt').focus()}return;}
 else if(a==='wake')S.wake.push(n);
 else if(a==='sleep')S.sleep.push(n);
 else if(a==='perfil')S.p={peso:num('peso')||70,alt:num('alt')||175,edad:num('edad')||17,sexo:document.getElementById('sexo').value};
@@ -243,18 +282,21 @@ else if(a==='study'){if(S.studyRun){S.study.push({s:S.studyRun,e:n});S.studyRun=
 else if(a==='sportstart')S.sportRun={type:document.getElementById('stype').value,s:n};
 else if(a==='sportstop'){const r=S.sportRun,m=Math.max(1,Math.round((n-r.s)/60000));S.sport.push({t:n,type:r.type,min:m,kcal:kcalSport(r.type,m)});S.sportRun=null}
 else if(a==='sportadd'){const m=num('mmin'),t=document.getElementById('mtype').value;if(m>0)S.sport.push({t:n,type:t,min:m,kcal:kcalSport(t,m)})}
+else if(a==='matchadd'){const opponent=document.getElementById('opponent').value.trim(),dateValue=document.getElementById('matchdate').value; if(!opponent||!dateValue){alert('Indica la fecha y el equipo rival.');return} const get=id=>{const el=document.getElementById(id);if(!el||el.value==='')return null;const z=Number(el.value);return Number.isFinite(z)?z:null}; const date=new Date(dateValue+'T12:00:00').getTime(); const m={id:n+Math.random().toString(16).slice(2),date,opponent,venue:document.getElementById('venue').value,scorefor:get('scorefor'),scoreagainst:get('scoreagainst'),minutes:get('m_minutes'),points:get('m_points'),ftm:get('ftm')||0,fta:get('fta')||0,tpm:get('tpm')||0,tpa:get('tpa')||0,twom:get('twom')||0,twoa:get('twoa')||0,oreb:get('oreb')||0,dreb:get('dreb')||0,assists:get('assists')||0,steals:get('steals')||0,blocks:get('blocks')||0,turnovers:get('turnovers')||0,foulsmade:get('foulsmade')||0,foulsdrawn:get('foulsdrawn')||0,valuation:get('valuation'),plusminus:get('plusminus'),notes:document.getElementById('matchnotes').value.trim()}; S.matches.push(m)}
+else if(a==='matchdel')S.matches=S.matches.filter(x=>String(x.id)!==String(v));
 else if(a==='foodadd'){const k=num('fk'),nm=document.getElementById('fn').value||'Comida';if(k>0)S.food.push({t:n,name:nm,kcal:k})}
 else if(a==='fooddel')S.food.splice(+v,1);
 else if(a==='photoadd'){S.food.push({t:n,name:photo.res.nombre,kcal:photo.res.kcal});photo.res=null}
 else if(a==='health')S.health[today()]={steps:num('hs'),kcal:num('hk')};
 else if(a==='weight'){const w=num('wn');if(w>0){S.weights.push({d:n,w});S.p.peso=w}}
 else if(a==='goal')S.goal=num('goal')||2200;
-else if(a==='expadd'){const m=num('ea');if(m>0)S.exp.push({t:n,cat:document.getElementById('ec').value,amt:m,note:document.getElementById('en').value})}
+else if(a==='expadd'){const m=num('ea'),type=document.getElementById('etype').value,cat=document.getElementById('ec').value;if(m>0)S.exp.push({t:n,type,cat,amt:m,note:document.getElementById('en').value})}
 else if(a==='expdel')S.exp.splice(+v,1);
 else if(a==='phone')S.phone[today()]=Math.round(num('ph2')*60);
 else if(a==='train'){const k=dk(n+ +v*864e5),o=['descanso','entreno','partido'];S.train[k]=o[(o.indexOf(S.train[k]||'descanso')+1)%3]}
 else if(a==='advice'){askAdvice();return}
 else if(a==='login'||a==='signup'||a==='logout'){cloudAct(a);return}
+else if(a==='syncnow'){window.cloud&&window.cloud.sync();return}
 else if(a==='mode'){S.diet.mode=v;S.goal=dietPlan().tgt}
 else if(a==='rate'){S.diet.rate=+v;S.goal=dietPlan().tgt}
 else if(a==='taskadd'){const t=document.getElementById('tt').value.trim();if(t)S.tasks.push({id:n,title:t,when:document.getElementById('tw').value,type:document.getElementById('ty').value,done:false})}
@@ -289,17 +331,32 @@ const C=window.FB_CONFIG;
 if(C&&C.apiKey&&!C.apiKey.startsWith('PEGA')){try{
  const B='https://www.gstatic.com/firebasejs/10.12.2/';
  const [{initializeApp},A,F]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-auth.js'),import(B+'firebase-firestore.js')]);
- const app=initializeApp(C),auth=A.getAuth(app),db=F.getFirestore(app);
+ const app=initializeApp(C),auth=A.getAuth(app),db=F.initializeFirestore(app,{experimentalAutoDetectLongPolling:true});
  const M={'auth/invalid-credential':'Correo o contraseña incorrectos','auth/invalid-email':'Correo no válido','auth/email-already-in-use':'Ese correo ya tiene cuenta: pulsa Entrar','auth/weak-password':'La contraseña necesita 6 caracteres o más','auth/missing-password':'Escribe la contraseña','auth/network-request-failed':'Sin conexión','auth/unauthorized-domain':'Dominio no autorizado en Firebase (Authentication > Settings > Authorized domains)'};
  const wrap=f=>async(...a)=>{try{await f(...a)}catch(e){throw{message:M[e.code]||e.message}}};
- window.cloud={login:wrap((e,p)=>A.signInWithEmailAndPassword(auth,e,p)),signup:wrap((e,p)=>A.createUserWithEmailAndPassword(auth,e,p)),logout:()=>A.signOut(auth)};
- let uid=null,timer=null;const ref=()=>F.doc(db,'users',uid);
- window.cloudPush=()=>{if(!uid)return;clearTimeout(timer);timer=setTimeout(async()=>{try{const s=window.App.get();await F.setDoc(ref(),{data:JSON.stringify(s),t:s._t||Date.now()});window.App.msg('Sincronizado '+new Date().toLocaleTimeString('es-ES'))}catch(e){window.App.msg('Sin conexión: se sincronizará en el próximo guardado')}},800)};
+ const TO=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r({code:'timeout'}),ms))]);
+ const why=e=>e.code==='permission-denied'?'permiso denegado: revisa y publica las reglas de Firestore':(e.code==='timeout'||e.code==='unavailable')?'no hay conexión con Firestore: ¿creaste la base de datos? ¿hay internet?':e.code==='not-found'?'Firestore no está creado en este proyecto':(e.code||e.message);
+ // Une nube y dispositivo sin perder nada: listas combinadas, mapas por día combinados, el resto gana lo más reciente
+ const mergeS=(c,l)=>{const o={},ks=new Set([...Object.keys(c),...Object.keys(l)]);
+  ks.forEach(k=>{const a=c[k],b=l[k];
+   if(Array.isArray(a)&&Array.isArray(b)){const seen=new Set(a.map(x=>JSON.stringify(x)));o[k]=[...a,...b.filter(x=>!seen.has(JSON.stringify(x)))]}
+   else if(['health','water','phone','train'].includes(k)&&a&&b)o[k]={...a,...b};
+   else o[k]=(c._t||0)>=(l._t||0)?(a!==undefined?a:b):(b!==undefined?b:a)});
+  o._t=Math.max(c._t||0,l._t||0)||Date.now();return o};
+ let uid=null,timer=null,ready=false;const ref=()=>F.doc(db,'users',uid);
+ const pushNow=async()=>{if(!uid||!ready)return;clearTimeout(timer);
+  try{const s=window.App.get();await TO(F.setDoc(ref(),{data:JSON.stringify(s),t:s._t||Date.now()}),10000);window.App.msg('✅ Guardado en la nube '+new Date().toLocaleTimeString('es-ES'))}
+  catch(e){window.App.msg('⚠️ No guardado: '+why(e))}};
+ window.cloudPush=()=>{if(!uid||!ready)return;clearTimeout(timer);timer=setTimeout(pushNow,800)};
+ window.cloud={login:wrap((e,p)=>A.signInWithEmailAndPassword(auth,e,p)),signup:wrap((e,p)=>A.createUserWithEmailAndPassword(auth,e,p)),logout:()=>A.signOut(auth),sync:pushNow};
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)pushNow()});
  window.cloudOK=true;
- A.onAuthStateChanged(auth,async u=>{uid=u?u.uid:null;window.App.user(u?u.email:null);if(!u)return;
-  try{const snap=await F.getDoc(ref()),loc=window.App.get();
-   if(snap.exists()&&(snap.data().t||0)>(loc._t||0)){window.App.replace(JSON.parse(snap.data().data));window.App.msg('Datos cargados de tu cuenta')}
-   else window.cloudPush()}catch(e){window.App.msg('No se pudo leer la nube: '+e.message)}});
+ A.onAuthStateChanged(auth,async u=>{ready=false;uid=u?u.uid:null;window.App.user(u?u.email:null);if(!u)return;
+  try{const snap=await TO(F.getDoc(ref()),10000);
+   if(snap.exists()){window.App.replace(mergeS(JSON.parse(snap.data().data),window.App.get()));window.App.msg('Datos cargados de tu cuenta')}
+   ready=true;await pushNow()}
+  catch(e){window.App.msg('⚠️ No se pudo leer la nube (no se sobrescribe nada): '+why(e))}});
  window.App.user(null);
 }catch(e){console.error(e)}}
-</script></body></html>
+</script>
+</body></html>

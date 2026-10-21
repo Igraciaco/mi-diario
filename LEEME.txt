@@ -1,10 +1,21 @@
-MI DIARIO (web instalable) - desde Windows
-1) Crea una cuenta en github.com y un repositorio PUBLICO llamado mi-diario (GitHub Pages gratis exige publico).
-2) Sube estos 5 archivos (Add file > Upload files).
-3) Settings > Pages > Source: "Deploy from a branch" > main / (root) > Save.
-4) En 1-2 minutos tendras https://TUUSUARIO.github.io/mi-diario/
-5) En el iPhone abre ese enlace en Safari > Compartir > Anadir a pantalla de inicio.
-   Atajos por seccion: ...mi-diario/#plan  #agenda  #hoy  #estudio  #deporte  #comida  #cuerpo  #extra
-6) Para editar: abre index.html en VS Code, guarda, vuelve a subirlo.
-Foto de comida y consejo con IA: la primera vez pedira tu clave de API de Anthropic (se guarda solo en tu movil).
-Tus datos viven en el movil: usa Cuerpo > Exportar de vez en cuando como copia.
+MI DIARIO — ACTUALIZACIÓN PARA GITHUB PAGES
+
+Archivos incluidos:
+- index.html: aplicación con diseño blanco/azul grisáceo, círculos de calorías, calendario mensual/diario, ingresos y gastos, y registro de estadísticas de baloncesto.
+- manifest.webmanifest: nombre, iconos y colores de la aplicación instalable.
+- sw.js: service worker con caché renovada para que se descargue la nueva versión.
+- icon-180.png e icon-512.png: iconos de la PWA original.
+
+CÓMO ACTUALIZAR EL REPOSITORIO
+1. Haz una copia de seguridad de tus datos desde la aplicación: Cuerpo > Exportar todo (JSON), si esa opción está disponible en tu versión actual.
+2. En GitHub abre el repositorio mi-diario.
+3. Sustituye index.html, manifest.webmanifest y sw.js por los archivos de esta carpeta.
+4. Conserva icon-180.png e icon-512.png que ya tienes; no hace falta reemplazarlos si siguen en el repositorio. Si faltan, súbelos desde esta carpeta.
+5. NO borres ni sustituyas firebase-config.js si ya lo tienes configurado. Este archivo depende de tu proyecto de Firebase y no se incluye en este paquete. Si no lo tenías, no lo crees con valores inventados; la sincronización en la nube no estará configurada.
+6. Confirma los cambios (Commit changes) y espera a que GitHub Pages publique la web.
+7. En el iPhone/iPad, cierra Mi Diario y vuelve a abrir la web. Si sigue apareciendo la versión antigua, cierra la PWA y abre el enlace en Safari para que se actualice.
+
+IMPORTANTE SOBRE LOS DATOS
+- La aplicación guarda datos localmente en cada navegador/dispositivo. GitHub Pages publica archivos, pero no sincroniza por sí mismo los datos personales entre iPhone, iPad y Windows.
+- Si usas Firebase, conserva la configuración y comprueba que el acceso a tu cuenta funciona antes de dar por terminada la actualización.
+- La integración automática bidireccional con Apple Salud y Apple Calendar no queda habilitada solo con estos archivos; esta versión mantiene el registro local y las funciones de calendario/exportación disponibles en el código.
