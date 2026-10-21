@@ -38,6 +38,7 @@ button{border-radius:13px}nav{box-shadow:0 -4px 24px rgba(39,65,91,.06)}nav butt
 .ringgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0 18px}
 .ringitem{text-align:center;min-width:0}.ring{--pct:0;--ring:#7894ae;width:100%;max-width:110px;aspect-ratio:1;border-radius:50%;margin:0 auto 8px;display:grid;place-items:center;background:conic-gradient(var(--ring) calc(var(--pct)*1%),#e9eff5 0);position:relative}.ring:before{content:'';position:absolute;inset:11px;background:white;border-radius:50%}.ring b{z-index:1;font-size:15px;line-height:1.15}.ringitem small{font-size:11px;color:var(--mu)}
 .monthbar{display:flex;justify-content:space-between;align-items:center;margin:8px 0 15px}.monthbar strong{text-transform:capitalize}.monthgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.dayname{text-align:center;color:var(--mu);font-size:11px;padding:6px 0}.daycell{min-width:0;min-height:53px;border-radius:12px;background:#f3f7fb;color:var(--tx);padding:7px 2px;font-size:13px;font-weight:500;position:relative}.daycell.sel{background:#7894ae;color:white}.daycell.today{outline:2px solid #9eb3c8}.dot{display:block;width:5px;height:5px;border-radius:50%;background:#5a84a6;margin:4px auto 0}.daycell.sel .dot{background:white}.hourrow{display:grid;grid-template-columns:48px 1fr;gap:10px;border-top:1px solid var(--bd);min-height:48px;padding:8px 0}.hourrow time{color:var(--mu);font-size:12px}.hourtask{border-left:3px solid var(--ac);padding:7px;background:#eef4f9;border-radius:7px;font-size:13px;margin:2px 0}
+.widget-card{position:relative;touch-action:pan-y}.widget-tools{display:flex;align-items:center;justify-content:flex-end;gap:5px;margin:-5px 0 8px;color:var(--mu);font-size:12px}.widget-tools span{margin-right:auto;cursor:grab;user-select:none}.widget-card[draggable=true]{cursor:default}.widget-tools button{padding:4px 8px}
 </style></head><body><main id="app"></main>
 <nav id="nav"></nav>
 <script src="firebase-config.js"></script>
@@ -60,9 +61,8 @@ window.claude={use:async n=>n==='sample'?sample:n==='downloads'?downloads:null};
 </script>
 <script>
 const KEY='mi-diario-v1';
-let S={p:{peso:70,alt:175,edad:17,sexo:'m'},wake:[],sleep:[],study:[],studyRun:null,sport:[],sportRun:null,food:[],health:{},period:[],weights:[],goal:2200,water:{},meas:[],exp:[],phone:{},train:{},tasks:[],matches:[],diet:{mode:'mantener',rate:1}};
+let S={p:{peso:70,alt:175,edad:17,sexo:'m'},wake:[],sleep:[],study:[],studyRun:null,sport:[],sportRun:null,food:[],health:{},period:[],weights:[],goal:2200,water:{},meas:[],exp:[],phone:{},train:{},tasks:[],diet:{mode:'mantener',rate:1}};
 try{const x=localStorage.getItem(KEY);if(x)S=Object.assign(S,JSON.parse(x))}catch(e){}
-if(!Array.isArray(S.matches))S.matches=[];
 const sig=()=>JSON.stringify(S,(k,v)=>k==='_t'?undefined:v);let _sig=sig();
 const save=()=>{const s=sig();if(s!==_sig){_sig=s;S._t=Date.now();window.cloudPush&&window.cloudPush()}try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
@@ -90,16 +90,29 @@ function healthToday(){const h=S.health[today()]||{};const st=h.steps||0;return{
 function render(){
 document.getElementById('nav').innerHTML=TABS.map(t=>`<button class="${tab===t[0]?'on':''}" data-act="tab" data-v="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join('');
 document.getElementById('app').innerHTML=({hoy,estudio,deporte,comida,cuerpo,plan,extra,agenda})[tab]();
+applyWidgetOrder();
 }
+// Reordenación de tarjetas/widgets, guardada por sección y usable con ratón, lápiz o controles táctiles.
+function applyWidgetOrder(){
+ const root=document.getElementById('app'); if(!root)return;
+ const cards=[...root.querySelectorAll(':scope > .card')]; const order=(S.widgetOrder&&S.widgetOrder[tab])||[];
+ cards.sort((a,b)=>{const ai=order.indexOf(cardKey(a)),bi=order.indexOf(cardKey(b));return (ai<0?999:ai)-(bi<0?999:bi)});
+ cards.forEach((card,i)=>{root.appendChild(card);card.dataset.widgetKey=cardKey(card);card.draggable=true;card.classList.add('widget-card');
+  let tools=card.querySelector(':scope > .widget-tools');if(!tools){tools=document.createElement('div');tools.className='widget-tools';tools.innerHTML='<span title="Arrastra esta tarjeta para moverla">⠿ Mover</span><button type="button" class="s sm" data-act="widgetup" aria-label="Mover arriba">↑</button><button type="button" class="s sm" data-act="widgetdown" aria-label="Mover abajo">↓</button>';card.prepend(tools)}
+ });
+}
+function cardKey(card){const h=card.querySelector('h2');return (h?h.textContent:'widget').trim().toLowerCase().replace(/[^a-z0-9áéíóúñ]+/g,'-')}
+function saveWidgetOrder(){if(!S.widgetOrder)S.widgetOrder={};S.widgetOrder[tab]=[...document.querySelectorAll('#app > .card')].map(cardKey);save()}
+
 
 const lastDays=()=>Array.from({length:7},(_,i)=>dk(Date.now()-(6-i)*864e5));
 const bars=(vals,color)=>{const m=Math.max(...vals,1),L=lastDays();return `<div style="display:flex;gap:6px;align-items:flex-end;height:96px">${vals.map((v,i)=>`<div style="flex:1;text-align:center;font-size:10px" class="mu">${Math.round(v*10)/10}<div style="height:${Math.round(v/m*60)}px;background:${color};border-radius:4px 4px 0 0;min-height:2px"></div>${new Date(L[i]+'T12:00').toLocaleDateString('es-ES',{weekday:'narrow'})}</div>`).join('')}</div>`};
 const wmL=()=>S.water[today()]||0,wgL=()=>Math.round(S.p.peso*35);
 function ringStat(label,value,max,color){const pct=Math.min(100,Math.max(0,value/Math.max(1,max)*100));return `<div class="ringitem"><div class="ring" style="--pct:${pct};--ring:${color}"><b>${Math.round(value)}<br><span style="font-size:10px;font-weight:500">kcal</span></b></div><small>${label}</small></div>`}
-let calMonth=new Date().getMonth(),calYear=new Date().getFullYear(),calDay=today();
+let calMonth=new Date().getMonth(),calYear=new Date().getFullYear(),calDay=today(),calDayOpen=false;
 function dayTasks(day){return S.tasks.filter(x=>x.when&&x.when.slice(0,10)===day).sort((a,b)=>a.when.localeCompare(b.when))}
 function monthView(){const first=new Date(calYear,calMonth,1),days=new Date(calYear,calMonth+1,0).getDate(),offset=(first.getDay()+6)%7;let out=`<div class="monthbar"><button class="s sm" data-act="calprev">‹</button><strong>${first.toLocaleDateString('es-ES',{month:'long',year:'numeric'})}</strong><button class="s sm" data-act="calnext">›</button></div><div class="monthgrid">${['L','M','X','J','V','S','D'].map(x=>`<div class="dayname">${x}</div>`).join('')}`;for(let i=0;i<offset;i++)out+='<div></div>';for(let d=1;d<=days;d++){const k=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');out+=`<button class="daycell ${k===calDay?'sel':''} ${k===today()?'today':''}" data-act="calday" data-v="${k}">${d}${dayTasks(k).length?'<i class="dot"></i>':''}</button>`}return out+'</div>'}
-function dayView(){const d=new Date(calDay+'T12:00');return `<h2 style="margin-top:20px">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})}</h2><div class="mu" style="margin-bottom:12px">Selecciona una hora para crear una tarea o evento.</div>${Array.from({length:24},(_,h)=>{const hh=String(h).padStart(2,'0');const ts=dayTasks(calDay).filter(x=>x.when.slice(11,13)===hh);return `<div class="hourrow"><time>${hh}:00</time><div><button class="s sm" data-act="calhour" data-v="${hh}" style="padding:3px 8px;font-size:11px">+ Añadir</button>${ts.map(x=>`<div class="hourtask">${esc(x.title)} <span class="mu">${x.when.slice(11,16)}</span></div>`).join('')}</div></div>`}).join('')}`}
+function dayView(){if(!calDayOpen)return `<p class="mu" style="margin-top:14px">Pulsa un día del calendario para abrir su horario por horas.</p>`;const d=new Date(calDay+'T12:00');return `<h2 style="margin-top:20px">${d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})}</h2><div class="mu" style="margin-bottom:12px">Selecciona una hora para crear una tarea o evento.</div>${Array.from({length:24},(_,h)=>{const hh=String(h).padStart(2,'0');const ts=dayTasks(calDay).filter(x=>x.when.slice(11,13)===hh);return `<div class="hourrow"><time>${hh}:00</time><div><button class="s sm" data-act="calhour" data-v="${hh}" style="padding:3px 8px;font-size:11px">+ Añadir</button>${ts.map(x=>`<div class="hourtask">${esc(x.title)} <span class="mu">${x.when.slice(11,16)}</span></div>`).join('')}</div></div>`}).join('')}`}
 function hoy(){
 const sp=sum(sportToday(),'kcal'),h=healthToday(),inn=sum(foodToday(),'kcal');
 const out=bmr()+sp+h.kcal,bal=inn-out,sl=sleepLast();
@@ -137,31 +150,12 @@ return `<h1>📚 Estudio</h1><div class="card" style="text-align:center">
 
 function deporte(){
 const r=S.sportRun,td=sportToday();
-const matches=[...(S.matches||[])].sort((a,b)=>b.date-a.date);
-const val=(x)=>x==null?'—':x;
-return `<h1>🏀 Baloncesto</h1>
-<div class="card"><h2>Registrar entrenamiento</h2>
+return `<h1>🏀 Baloncesto</h1><div class="card"><h2>Cronómetro</h2>
 ${r?`<div style="text-align:center"><div class="big" data-live="sport">${clock(Date.now()-r.s)}</div><p class="mu">${MET[r.type][1]} · ~<span data-live="sportk">${kcalSport(r.type,(Date.now()-r.s)/60000)}</span> kcal</p><button class="r" data-act="sportstop" style="width:100%">⏹ Terminar</button></div>`:
 `<select id="stype">${Object.entries(MET).map(([k,v])=>`<option value="${k}">${v[1]}</option>`).join('')}</select><p><button class="g" data-act="sportstart" style="width:100%">▶ Empezar ahora</button></p>`}</div>
-<div class="card"><h2>Añadir entrenamiento a mano</h2><div class="g2"><select id="mtype">${Object.entries(MET).map(([k,v])=>`<option value="${k}">${v[1]}</option>`).join('')}</select><input id="mmin" type="number" min="1" placeholder="Minutos"></div><p><button data-act="sportadd">Añadir entrenamiento</button></p><p class="mu">Calorías estimadas = MET × peso (${S.p.peso} kg) × horas.</p></div>
-<div class="card"><h2>Entrenamientos de hoy · ${sum(td,'kcal')} kcal</h2>${td.map(x=>`<div class="li"><span>${MET[x.type]?.[1]||'Entrenamiento'} · ${x.min} min</span><b>${x.kcal} kcal</b></div>`).join('')||'<p class="mu">Sin entrenamientos registrados hoy.</p>'}</div>
-<div class="card"><h2>🏆 Estadísticas de partido</h2><p class="mu">Guarda el resultado y tus estadísticas individuales. Los tiros se registran como anotados / intentados.</p>
-<label>Fecha del partido</label><input id="matchdate" type="date" value="${today()}">
-<label>Equipo rival</label><input id="opponent" maxlength="80" placeholder="Nombre del equipo rival">
-<div class="g2"><div><label>Partido</label><select id="venue"><option value="casa">🏠 Casa</option><option value="visitante">🚌 Visitante</option></select></div><div><label>Resultado del equipo</label><div class="g2"><input id="scorefor" type="number" min="0" placeholder="Nosotros"><input id="scoreagainst" type="number" min="0" placeholder="Rival"></div></div></div>
-<div class="g2"><div><label>Minutos jugados</label><input id="m_minutes" type="number" min="0" step="0.1" placeholder="Minutos"></div><div><label>Puntos</label><input id="m_points" type="number" min="0" placeholder="Puntos"></div>
-<div><label>Tiros libres anotados</label><input id="ftm" type="number" min="0" placeholder="Anotados"></div><div><label>Tiros libres intentados</label><input id="fta" type="number" min="0" placeholder="Intentados"></div>
-<div><label>Triples anotados</label><input id="tpm" type="number" min="0" placeholder="Anotados"></div><div><label>Triples intentados</label><input id="tpa" type="number" min="0" placeholder="Intentados"></div>
-<div><label>Tiros de 2 anotados</label><input id="twom" type="number" min="0" placeholder="Anotados"></div><div><label>Tiros de 2 intentados</label><input id="twoa" type="number" min="0" placeholder="Intentados"></div>
-<div><label>Rebotes ofensivos</label><input id="oreb" type="number" min="0" placeholder="Rebotes"></div><div><label>Rebotes defensivos</label><input id="dreb" type="number" min="0" placeholder="Rebotes"></div>
-<div><label>Asistencias</label><input id="assists" type="number" min="0" placeholder="Asistencias"></div><div><label>Robos</label><input id="steals" type="number" min="0" placeholder="Robos"></div>
-<div><label>Tapones</label><input id="blocks" type="number" min="0" placeholder="Tapones"></div><div><label>Pérdidas</label><input id="turnovers" type="number" min="0" placeholder="Pérdidas"></div>
-<div><label>Faltas cometidas</label><input id="foulsmade" type="number" min="0" placeholder="Faltas"></div><div><label>Faltas recibidas</label><input id="foulsdrawn" type="number" min="0" placeholder="Faltas"></div>
-<div><label>Valoración</label><input id="valuation" type="number" step="0.1" placeholder="Valoración"></div><div><label>Más / menos (+/−)</label><input id="plusminus" type="number" step="1" placeholder="+/-"></div></div>
-<label>Notas (opcional)</label><input id="matchnotes" maxlength="300" placeholder="Sensaciones, detalles del partido…">
-<p><button data-act="matchadd" style="width:100%">Guardar partido</button></p></div>
-<div class="card"><h2>📊 Historial de partidos · ${matches.length}</h2>
-${matches.map(x=>`<div style="border-top:1px solid var(--bd);padding:12px 0"><div class="row" style="justify-content:space-between"><b>${esc(x.opponent||'Rival sin nombre')}</b><button class="s sm" data-act="matchdel" data-v="${x.id}">Eliminar</button></div><div class="mu">${fd(x.date)} · ${x.venue==='casa'?'🏠 Casa':'🚌 Visitante'}</div><div class="big" style="font-size:26px;margin:4px 0">${val(x.scorefor)} – ${val(x.scoreagainst)} <span class="mu" style="font-size:12px">${x.scorefor>x.scoreagainst?'VICTORIA':x.scorefor<x.scoreagainst?'DERROTA':'EMPATE'}</span></div><div class="g2"><div class="stat">Puntos<b>${val(x.points)}</b></div><div class="stat">Minutos<b>${val(x.minutes)}</b></div><div class="stat">Tiros<br><b>${x.twom||0}/${x.twoa||0} · ${x.tpm||0}/${x.tpa||0} · ${x.ftm||0}/${x.fta||0}</b><span class="mu">2PT · 3PT · TL</span></div><div class="stat">Rebotes<b>${(x.oreb||0)+(x.dreb||0)} <span class="mu">(${x.oreb||0} O / ${x.dreb||0} D)</span></b></div><div class="stat">Asist. / Robos<b>${x.assists||0} / ${x.steals||0}</b></div><div class="stat">Valoración / +−<b>${val(x.valuation)} / ${val(x.plusminus)}</b></div></div><p class="mu">Tapones ${x.blocks||0} · Pérdidas ${x.turnovers||0} · Faltas cometidas ${x.foulsmade||0} · recibidas ${x.foulsdrawn||0}${x.notes?' · '+esc(x.notes):''}</p></div>`).join('')||'<p class="mu">Todavía no has guardado ningún partido.</p>'}</div>`}
+<div class="card"><h2>Añadir a mano</h2><div class="g2"><select id="mtype">${Object.entries(MET).map(([k,v])=>`<option value="${k}">${v[1]}</option>`).join('')}</select><input id="mmin" type="number" placeholder="Minutos"></div><p><button data-act="sportadd">Añadir</button></p>
+<p class="mu">Calorías = MET × peso (${S.p.peso} kg) × horas. MET: entreno 6,5 · partido 8 · calentamiento 4,5.</p></div>
+<div class="card"><h2>Hoy · ${sum(td,'kcal')} kcal</h2>${td.map(x=>`<div class="li"><span>${MET[x.type][1]} · ${x.min} min</span><b>${x.kcal} kcal</b></div>`).join('')||'<p class="mu">Sin sesiones hoy.</p>'}</div>`}
 
 function comida(){
 const td=foodToday(),tot=sum(td,'kcal');
@@ -271,10 +265,11 @@ document.addEventListener('click',async e=>{
 const el=e.target.closest('[data-act]');if(!el||el.tagName==='INPUT')return;
 const a=el.dataset.act,v=el.dataset.v,n=Date.now();
 if(a==='tab')tab=v;
-else if(a==='calprev'){calMonth--;if(calMonth<0){calMonth=11;calYear--}}
-else if(a==='calnext'){calMonth++;if(calMonth>11){calMonth=0;calYear++}}
-else if(a==='calday')calDay=v;
+else if(a==='calprev'){calMonth--;calDayOpen=false;if(calMonth<0){calMonth=11;calYear--}}
+else if(a==='calnext'){calMonth++;calDayOpen=false;if(calMonth>11){calMonth=0;calYear++}}
+else if(a==='calday'){calDay=v;calDayOpen=true;}
 else if(a==='calhour'){const input=document.getElementById('tw');if(input){input.value=calDay+'T'+v+':00';document.getElementById('tt').focus()}return;}
+else if(a==='widgetup'||a==='widgetdown'){const card=el.closest('.widget-card');if(card){if(a==='widgetup'&&card.previousElementSibling)card.parentNode.insertBefore(card,card.previousElementSibling);if(a==='widgetdown'&&card.nextElementSibling)card.parentNode.insertBefore(card.nextElementSibling,card);saveWidgetOrder();applyWidgetOrder()}return;}
 else if(a==='wake')S.wake.push(n);
 else if(a==='sleep')S.sleep.push(n);
 else if(a==='perfil')S.p={peso:num('peso')||70,alt:num('alt')||175,edad:num('edad')||17,sexo:document.getElementById('sexo').value};
@@ -282,8 +277,6 @@ else if(a==='study'){if(S.studyRun){S.study.push({s:S.studyRun,e:n});S.studyRun=
 else if(a==='sportstart')S.sportRun={type:document.getElementById('stype').value,s:n};
 else if(a==='sportstop'){const r=S.sportRun,m=Math.max(1,Math.round((n-r.s)/60000));S.sport.push({t:n,type:r.type,min:m,kcal:kcalSport(r.type,m)});S.sportRun=null}
 else if(a==='sportadd'){const m=num('mmin'),t=document.getElementById('mtype').value;if(m>0)S.sport.push({t:n,type:t,min:m,kcal:kcalSport(t,m)})}
-else if(a==='matchadd'){const opponent=document.getElementById('opponent').value.trim(),dateValue=document.getElementById('matchdate').value; if(!opponent||!dateValue){alert('Indica la fecha y el equipo rival.');return} const get=id=>{const el=document.getElementById(id);if(!el||el.value==='')return null;const z=Number(el.value);return Number.isFinite(z)?z:null}; const date=new Date(dateValue+'T12:00:00').getTime(); const m={id:n+Math.random().toString(16).slice(2),date,opponent,venue:document.getElementById('venue').value,scorefor:get('scorefor'),scoreagainst:get('scoreagainst'),minutes:get('m_minutes'),points:get('m_points'),ftm:get('ftm')||0,fta:get('fta')||0,tpm:get('tpm')||0,tpa:get('tpa')||0,twom:get('twom')||0,twoa:get('twoa')||0,oreb:get('oreb')||0,dreb:get('dreb')||0,assists:get('assists')||0,steals:get('steals')||0,blocks:get('blocks')||0,turnovers:get('turnovers')||0,foulsmade:get('foulsmade')||0,foulsdrawn:get('foulsdrawn')||0,valuation:get('valuation'),plusminus:get('plusminus'),notes:document.getElementById('matchnotes').value.trim()}; S.matches.push(m)}
-else if(a==='matchdel')S.matches=S.matches.filter(x=>String(x.id)!==String(v));
 else if(a==='foodadd'){const k=num('fk'),nm=document.getElementById('fn').value||'Comida';if(k>0)S.food.push({t:n,name:nm,kcal:k})}
 else if(a==='fooddel')S.food.splice(+v,1);
 else if(a==='photoadd'){S.food.push({t:n,name:photo.res.nombre,kcal:photo.res.kcal});photo.res=null}
@@ -322,6 +315,10 @@ photo.busy=false;render()});
 setInterval(()=>{const q=s=>document.querySelector('[data-live="'+s+'"]');
 if(S.studyRun&&q('study'))q('study').textContent=clock(Date.now()-S.studyRun);
 if(S.sportRun){if(q('sport'))q('sport').textContent=clock(Date.now()-S.sportRun.s);if(q('sportk'))q('sportk').textContent=kcalSport(S.sportRun.type,(Date.now()-S.sportRun.s)/60000)}},1000);
+let draggedWidget=null;
+document.addEventListener('dragstart',e=>{const c=e.target.closest('#app > .widget-card');if(!c)return;draggedWidget=c;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',c.dataset.widgetKey)}catch(_){} });
+document.addEventListener('dragover',e=>{if(!draggedWidget)return;const target=e.target.closest('#app > .widget-card');if(!target||target===draggedWidget)return;e.preventDefault();const r=target.getBoundingClientRect();target.parentNode.insertBefore(draggedWidget,e.clientY<r.top+r.height/2?target:target.nextElementSibling)});
+document.addEventListener('dragend',()=>{if(draggedWidget){draggedWidget=null;saveWidgetOrder()}});
 const goHash=()=>{const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h)){tab=h;render()}};addEventListener('hashchange',goHash);goHash();
 render();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
