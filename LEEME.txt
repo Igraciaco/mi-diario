@@ -1,0 +1,10 @@
+MI DIARIO (web instalable) - desde Windows
+1) Crea una cuenta en github.com y un repositorio PUBLICO llamado mi-diario (GitHub Pages gratis exige publico).
+2) Sube estos 5 archivos (Add file > Upload files).
+3) Settings > Pages > Source: "Deploy from a branch" > main / (root) > Save.
+4) En 1-2 minutos tendras https://TUUSUARIO.github.io/mi-diario/
+5) En el iPhone abre ese enlace en Safari > Compartir > Anadir a pantalla de inicio.
+   Atajos por seccion: ...mi-diario/#plan  #agenda  #hoy  #estudio  #deporte  #comida  #cuerpo  #extra
+6) Para editar: abre index.html en VS Code, guarda, vuelve a subirlo.
+Foto de comida y consejo con IA: la primera vez pedira tu clave de API de Anthropic (se guarda solo en tu movil).
+Tus datos viven en el movil: usa Cuerpo > Exportar de vez en cuando como copia.
